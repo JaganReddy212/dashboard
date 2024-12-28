@@ -191,8 +191,12 @@
                         const dimensions = tankDimensions[node.channel_id];
                         const distanceInMeters = d.distance / 100; // Convert cm to meters
                         let volume = dimensions.length * dimensions.breadth * (dimensions.depth - distanceInMeters);
+                        
+                        // Ensure volume is positive and realistic
+                        if (volume < 0) volume = 0;
+
                         console.log(`Node: ${node.name}, Distance: ${d.distance} cm, Volume: ${volume.toFixed(2)} m³`);
-                        return volume > 0 ? volume.toFixed(2) : 0;
+                        return volume.toFixed(2);
                     });
 
                     createChart(`chart-vol-${node.channel_id}`, volumeData, 'Volume', '#f59e0b');
