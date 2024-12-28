@@ -3,73 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Node Monitoring Dashboard</title>
+    <title>Water Level Nodes</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #map { height: 100vh; }
-        .chart-title { margin: 10px 0; font-weight: bold; font-size: 14px; }
-        .popup-chart-container { width: 300px; height: 150px; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .popup-chart-container {
+            width: 100%;
+            max-width: 400px;
+            height: 200px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+            width: 430px !important;
+        }
+
+        .leaflet-popup-content-wrapper {
+            padding: 0;
+        }
+
+        .volume-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #059669;
+            margin-top: 10px;
+        }
+
+        .error-text {
+            color: red;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <script>
-        // Nodes configuration with dimensions
-        const nodes = [
-            {
-                name: "Pump House 3",
-                coordinates: [17.4435, 78.3489],
-                channel_id: "2611172",
-                api_key: "OEORJPRA3IXMCARG",
-                dimensions: { length: 5.00, breadth: 2.97, depth: 2.34} // Dimensions in meters
-            },
-            {
-                name: "KRB terrace",
-                coordinates: [17.444976513944358, 78.3496481180191],
-                channel_id: "2613745",
-                api_key: "KHJXYW6LEIDQ1TJA",
-                dimensions: { length: 13.16, breadth: 8.72, depth: 1.20} // Dimensions in meters
-            }
-            // Add more nodes here...
-        ];
 
+    <script>
         // Initialize the map
         const map = L.map('map').setView([17.4435, 78.3489], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
+            attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Function to calculate volume
-        function calculateVolume(dimensions, distance) {
-            const effectiveDepth = dimensions.depth - distance;
-            if (effectiveDepth < 0) return 0; // Prevent negative volume
-            return dimensions.length * dimensions.breadth * effectiveDepth;
-        }
+        // Chart configuration
+        const chartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 10 },
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: { maxRotation: 0, font: { size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        };
+
+        // Node configurations
+        const nodes = [
+            { name: "Pump House 3", coordinates: [17.4435, 78.3489], channel_id: "2611172", api_key: "OEORJPRA3IXMCARG" },
+            { name: "KRB Terrace", coordinates: [17.444976513944358, 78.3496481180191], channel_id: "2613745", api_key: "KHJXYW6LEIDQ1TJA" },
+        ];
+
+        // Tank dimensions
+        const tankDimensions = {
+            "2611172": { length: 4.90, breadth: 2.93, depth: 2.50 },
+            "2613745": { length: 13.6, breadth: 8.72, depth: 1.20 }
+        };
 
         // Fetch data from ThingSpeak
-        async function fetchData(channel_id, api_key, dimensions) {
+        async function fetchData(channel_id, api_key) {
             try {
                 const response = await fetch(`https://api.thingspeak.com/channels/${channel_id}/feeds.json?api_key=${api_key}&results=24`);
                 if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
                 const data = await response.json();
-                return data.feeds.map(feed => {
-                    const distance = parseFloat(feed.field2);
-                    return {
-                        time: new Date(feed.created_at).toLocaleString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }),
-                        temperature: parseFloat(feed.field1),
-                        distance: distance,
-                        volume: calculateVolume(dimensions, distance) // Add calculated volume
-                    };
-                });
+                return data.feeds.map(feed => ({
+                    time: new Date(feed.created_at).toLocaleString(),
+                    temperature: parseFloat(feed.field1) || 0,
+                    distance: parseFloat(feed.field2) || 0
+                }));
             } catch (error) {
                 console.error('Error fetching data:', error);
                 return [];
@@ -79,33 +130,25 @@
         // Create charts
         function createChart(canvasId, data, label, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.time),
-                    datasets: [{
-                        label: label,
-                        data: data.map(d => d[label.toLowerCase()]),
-                        borderColor: color,
-                        borderWidth: 2,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { autoSkip: true, maxTicksLimit: 10 } },
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
+            const config = { ...chartConfig };
+            config.data = {
+                labels: data.map(d => d.time),
+                datasets: [{
+                    label: label,
+                    data: data.map(d => d[label.toLowerCase()]),
+                    borderColor: color,
+                    backgroundColor: color + '15',
+                    fill: true
+                }]
+            };
+            new Chart(ctx, config);
         }
 
-        // Add markers for each node
+        // Add markers and popups
         nodes.forEach(node => {
             const marker = L.marker(node.coordinates).addTo(map);
-            marker.bindPopup(`
+
+            const popupContent = `
                 <div style="padding: 15px;">
                     <div style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">${node.name}</div>
                     <div class="chart-title">Temperature (°C)</div>
@@ -117,22 +160,31 @@
                         <canvas id="chart-dist-${node.channel_id}"></canvas>
                     </div>
                     <div class="chart-title">Volume (m³)</div>
-                    <div class="popup-chart-container">
-                        <canvas id="chart-vol-${node.channel_id}"></canvas>
-                    </div>
+                    <div id="volume-${node.channel_id}" class="volume-text">Calculating...</div>
                 </div>
-            `);
+            `;
 
-            // On popup open, fetch data and create charts
+            marker.bindPopup(popupContent, { maxWidth: 430 });
+
             marker.on('popupopen', async () => {
-                const data = await fetchData(node.channel_id, node.api_key, node.dimensions);
+                const data = await fetchData(node.channel_id, node.api_key);
                 if (data.length > 0) {
                     createChart(`chart-temp-${node.channel_id}`, data, 'Temperature', '#6d28d9');
                     createChart(`chart-dist-${node.channel_id}`, data, 'Distance', '#059669');
-                    createChart(`chart-vol-${node.channel_id}`, data, 'Volume', '#ef4444');
+
+                    // Calculate volume
+                    const dimensions = tankDimensions[node.channel_id];
+                    const lastDistance = data[data.length - 1].distance / 100; // Convert cm to meters
+                    let currentVolume = dimensions.length * dimensions.breadth * (dimensions.depth - lastDistance);
+                    currentVolume = currentVolume > 0 ? currentVolume.toFixed(2) : 0;
+
+                    document.getElementById(`volume-${node.channel_id}`).innerText = `${currentVolume} m³`;
+                } else {
+                    document.getElementById(`volume-${node.channel_id}`).innerText = "No Data Available";
                 }
             });
         });
     </script>
 </body>
 </html>
+
