@@ -160,6 +160,9 @@
                         <canvas id="chart-dist-${node.channel_id}"></canvas>
                     </div>
                     <div class="chart-title">Volume (m³)</div>
+                    <div class="popup-chart-container">
+                        <canvas id="chart-vol-${node.channel_id}"></canvas>
+                    </div>
                     <div id="volume-${node.channel_id}" class="volume-text">Calculating...</div>
                 </div>
             `;
@@ -172,13 +175,19 @@
                     createChart(`chart-temp-${node.channel_id}`, data, 'Temperature', '#6d28d9');
                     createChart(`chart-dist-${node.channel_id}`, data, 'Distance', '#059669');
 
-                    // Calculate volume
-                    const dimensions = tankDimensions[node.channel_id];
-                    const lastDistance = data[data.length - 1].distance / 100; // Convert cm to meters
-                    let currentVolume = dimensions.length * dimensions.breadth * (dimensions.depth - lastDistance);
-                    currentVolume = currentVolume > 0 ? currentVolume.toFixed(2) : 0;
+                    // Calculate volume data
+                    const volumeData = data.map(d => {
+                        const dimensions = tankDimensions[node.channel_id];
+                        const distanceInMeters = d.distance / 100; // Convert cm to meters
+                        let volume = dimensions.length * dimensions.breadth * (dimensions.depth - distanceInMeters);
+                        return volume > 0 ? volume.toFixed(2) : 0;
+                    });
 
-                    document.getElementById(`volume-${node.channel_id}`).innerText = `${currentVolume} m³`;
+                    createChart(`chart-vol-${node.channel_id}`, data, 'Volume', '#f59e0b');
+
+                    // Update the volume text
+                    const lastVolume = volumeData[volumeData.length - 1];
+                    document.getElementById(`volume-${node.channel_id}`).innerText = `${lastVolume} m³`;
                 } else {
                     document.getElementById(`volume-${node.channel_id}`).innerText = "No Data Available";
                 }
@@ -187,4 +196,3 @@
     </script>
 </body>
 </html>
-
