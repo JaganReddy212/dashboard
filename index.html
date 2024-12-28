@@ -123,13 +123,25 @@
         };
 
         const nodes = [
-            { name: "Pump House 3", coordinates: [17.4435, 78.3489], channel_id: "2611172", api_key: "OEORJPRA3IXMCARG" },
+            { name: "Pump House 3 in", coordinates: [17.44314718900755,78.34929513921452], channel_id: "2611172", api_key: "OEORJPRA3IXMCARG" },
             { name: "KRB Terrace", coordinates: [17.444976513944358, 78.3496481180191], channel_id: "2613745", api_key: "KHJXYW6LEIDQ1TJA" },
+            { name: "Pump House 3 out", coordinates: [17.44314718900755,78.34929513921452], channel_id: "2611169", api_key: "SBUHDKT57869MGP1" },
+            { name: "Vindhya", coordinates: [17.445137209094273,78.34999787814013], channel_id: "2613743", api_key: "6K0JIG1QKDOEWM25" },
+            { name: "OBH", coordinates: [17.444969349219,78.34602928174718], channel_id: "2613728", api_key: "2EUV9OVC62430JXO" },
+            
+
+            
         ];
 
         const tankDimensions = {
             "2611172": { length: 4.90, breadth: 2.93, depth: 2.50 },
-            "2613745": { length: 13.6, breadth: 8.72, depth: 1.20 }
+            "2613745": { length: 13.6, breadth: 8.72, depth: 1.20 },
+            "2611169": { length: 5.00, breadth: 2.97, depth: 2.34 },
+            "2613743": { length: 6.30, breadth: 2.20, depth: 1.20 },
+            "2613743": { length: 6.30, breadth: 2.20, depth: 1.20 },
+             
+
+
         };
 
         async function fetchData(channel_id, api_key) {
