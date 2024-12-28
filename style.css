@@ -1,42 +1,61 @@
-html, body {
+/* Main layout */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    color: #1a1a1a;
+    background-color: #f5f5f5;
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
-    background-color: #f5f5f5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-#map {
-    height: 100%;
-    width: 100%;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
 }
 
-/* New layout using flex for side-by-side charts */
-.popup-content {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+/* Map styles */
+.map-container {
+    height: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
 }
 
-.popup-chart-container {
-    width: 100%;
-    max-width: 400px;
-    height: 200px;
-    margin-bottom: 10px;
-    background: white;
-    padding: 15px;
+/* Popup styles */
+.popup {
+    min-width: 320px;
+    max-width: 420px; /* Slightly larger for volume visualization */
+    padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: white;
 }
 
-.chart-title {
-    font-size: 14px;
+.popup h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 10px;
-    color: #333;
+    color: #1a1a1a;
 }
 
+.popup .subtitle {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+}
+
+.chart-container {
+    height: 200px;
+    margin: 1rem 0;
+    background-color: white;
+    border-radius: 4px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* New volume card styles */
 .volume-card {
     background-color: #ecfdf5;
     border-left: 5px solid #10b981;
@@ -58,18 +77,77 @@ html, body {
     color: #10b981;
 }
 
-.leaflet-popup-content {
-    margin: 0 !important;
-    width: 430px !important;
+/* Loading overlay */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
 }
 
-/* Responsiveness for smaller screens */
+.loading-content {
+    background-color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.loading-content .loading-text {
+    font-size: 1rem;
+    color: #1a1a1a;
+    margin-top: 0.5rem;
+}
+
+/* Status indicators */
+.status-card {
+    background-color: #f0f9ff;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.status-value {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #0369a1;
+}
+
+.status-label {
+    font-size: 0.875rem;
+    color: #1e3a8a;
+}
+
+/* Error message */
+.error-message {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
 @media (max-width: 640px) {
-    .popup-content {
-        flex-direction: column;
+    .popup {
+        min-width: 280px;
     }
-    .popup-chart-container {
-        width: 100%;
+    
+    .chart-container {
         height: 180px;
+    }
+
+    .volume-card .volume-value {
+        font-size: 1rem;
     }
 }
