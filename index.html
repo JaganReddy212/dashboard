@@ -62,11 +62,6 @@
             font-weight: 600;
             margin-top: 10px;
         }
-
-        .popup-chart-container canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
     </style>
 </head>
 <body>
@@ -109,7 +104,7 @@
             { name: "KRB Terrace", coordinates: [17.444976513944358, 78.3496481180191], channel_id: "2613745", api_key: "KHJXYW6LEIDQ1TJA" },
         ];
 
-        // Tank dimensions (in meters)
+        // Tank dimensions
         const tankDimensions = {
             "2611172": { length: 4.90, breadth: 2.93, depth: 2.50 },
             "2613745": { length: 13.6, breadth: 8.72, depth: 1.20 }
@@ -135,24 +130,18 @@
         // Create charts
         function createChart(canvasId, data, label, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-
-            // Convert volume data to a numeric array if it's a string array
-            const numericData = data.map(item => parseFloat(item));
-
             const config = { ...chartConfig };
             config.data = {
                 labels: data.map(d => d.time),
                 datasets: [{
                     label: label,
-                    data: numericData, // Use the numeric data
+                    data: data.map(d => d[label.toLowerCase()]),
                     borderColor: color,
                     backgroundColor: color + '15',
                     fill: true
                 }]
             };
-
-            const chartInstance = new Chart(ctx, config);
-            chartInstance.update();
+            new Chart(ctx, config);
         }
 
         // Add markers and popups
@@ -186,20 +175,15 @@
                     createChart(`chart-temp-${node.channel_id}`, data, 'Temperature', '#6d28d9');
                     createChart(`chart-dist-${node.channel_id}`, data, 'Distance', '#059669');
 
-                    // Calculate volume data (convert distance to meters)
+                    // Calculate volume data
                     const volumeData = data.map(d => {
                         const dimensions = tankDimensions[node.channel_id];
                         const distanceInMeters = d.distance / 100; // Convert cm to meters
                         let volume = dimensions.length * dimensions.breadth * (dimensions.depth - distanceInMeters);
-                        
-                        // Ensure volume is positive and realistic
-                        if (volume < 0) volume = 0;
-
-                        console.log(`Node: ${node.name}, Distance: ${d.distance} cm, Volume: ${volume.toFixed(2)} m³`);
-                        return volume.toFixed(2);
+                        return volume > 0 ? volume.toFixed(2) : 0;
                     });
 
-                    createChart(`chart-vol-${node.channel_id}`, volumeData, 'Volume', '#f59e0b');
+                    createChart(`chart-vol-${node.channel_id}`, data, 'Volume', '#f59e0b');
 
                     // Update the volume text
                     const lastVolume = volumeData[volumeData.length - 1];
